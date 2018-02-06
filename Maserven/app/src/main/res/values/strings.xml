@@ -1,0 +1,134 @@
+<resources>
+    <string name="app_name">Maserven</string>
+    <string name="loadgif">Cargando . . .</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="hecho_por">www.expriceit.com.ec est@listo</string>
+    <string name="registrarse">¿No se encuentra Registrado?</string>
+    <string name="txtPuerto">100</string>
+    <string name="editText1" />
+    <string name="txtViewRespuesta">Respuesta</string>
+    <string name="btn_send">Enviar</string>
+    <string name="btn_reset">Resetear</string>
+    <string name="tituloApp">Taxi</string>
+    <string name="crear_cuenta">Crear Cuenta</string>
+    <string name="iniciar">INICIAR</string>
+    <string name="registrar">REGISTRAR</string>
+    <string name="olvido_contrasenia">¿Olvidó su Contraseña?</string>
+    <string name="iniciar_sesion">Iniciar Sesión</string>
+    <string name="server_localhost">http://200.125.204.106:8080//MaservenWS/app/</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Configuraciones</string>
+    <string name="btn_buscar">Buscar</string>
+    <string name="btn_solicitar_tax">Solicitar Taxi</string>
+    <string name="registrar_cliente">Registrar Cliente</string>
+    <string name="title_activity_solicitar_taxis">SolicitarTaxis</string>
+    <string name="gcm_send_message">Token retrieved and sent to server! You can now use gcmsender to
+        send downstream messages to this app.</string>
+    <string name="registering_message">Generating InstanceID token…</string>
+    <string name="token_error_message">An error occurred while either fetching the InstanceID token,
+        sending the fetched token to the server or subscribing to the PubSub topic. Please try
+        running the sample again.</string>
+    <string name="title_activity_mis_datos_taxista">Datos Del Taxi</string>
+    <string name="large_text"> Taxista</string>
+    <string name="titledatosTaxista">Datos del Taxista</string>
+    <string name="nombrescompletos">Nombres Completos:</string>
+    <string name="celular1">Celular1:</string>
+    <string name="celular2">Celular2:</string>
+    <string name="valida_pin">Valida PIN</string>
+    <string name="validar">Validar</string>
+    <string name="nombre_menu_main">MENÚ - MASERVEN S.A.</string>
+    <string name="sub_nombre_menu_main">Aplicación de Ventas Móvil.</string>
+    <string name="recuperar_clave">Recuperar Clave</string>
+    <string name="pin">Código PIN Incorrecto</string>
+    <string name="lbl_nom_vendedor">Usuario:</string>
+    <string name="consular_cli">Consultar Cliente</string>
+    <string name="mis_clientes">Mis Clientes</string>
+    <string name="identificacion">R.U.C/C.I.:</string>
+    <string name="consultar">Consultar</string>
+    <string name="ingrese_indent_cliente">Ingrese Identificación Cliente</string>
+    <string name="ruc_ci">R.U.C./C.I.:</string>
+    <string name="razon_social">Razón Social</string>
+    <string name="titulos_items">Mis Items</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <!-- Strings related to Settings -->
+
+    <!-- Example General settings -->
+    <string name="pref_header_general">General</string>
+
+    <string name="pref_title_social_recommendations">Enable social recommendations</string>
+    <string name="pref_description_social_recommendations">Recommendations for people to contact
+        based on your message history
+    </string>
+
+    <string name="pref_title_display_name">Display name</string>
+    <string name="pref_default_display_name">John Smith</string>
+
+    <string name="pref_title_add_friends_to_messages">Add friends to messages</string>
+    <string-array name="pref_example_list_titles">
+        <item>Always</item>
+        <item>When possible</item>
+        <item>Never</item>
+    </string-array>
+    <string-array name="pref_example_list_values">
+        <item>1</item>
+        <item>0</item>
+        <item>-1</item>
+    </string-array>
+
+    <!-- Example settings for Data & Sync -->
+    <string name="pref_header_data_sync">Data &amp; sync</string>
+
+    <string name="pref_title_sync_frequency">Sync frequency</string>
+    <string-array name="pref_sync_frequency_titles">
+        <item>15 minutes</item>
+        <item>30 minutes</item>
+        <item>1 hour</item>
+        <item>3 hours</item>
+        <item>6 hours</item>
+        <item>Never</item>
+    </string-array>
+    <string-array name="pref_sync_frequency_values">
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
+        <item>180</item>
+        <item>360</item>
+        <item>-1</item>
+    </string-array>
+
+    <string-array name="list_preference_entries">
+        <item>Entry 1</item>
+        <item>Entry 2</item>
+        <item>Entry 3</item>
+    </string-array>
+
+    <string-array name="list_preference_entry_values">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string-array name="multi_select_list_preference_default_value" />
+
+    <string name="pref_title_system_sync_settings">System sync settings</string>
+
+    <!-- Example settings for Notifications -->
+    <string name="pref_header_notifications">Notifications</string>
+
+    <string name="pref_title_new_message_notifications">New message notifications</string>
+
+    <string name="pref_title_ringtone">Ringtone</string>
+    <string name="pref_ringtone_silent">Silent</string>
+
+    <string name="pref_title_vibrate">Vibrate</string>
+    <string name="esquemaonline">ONLINE</string>
+    <string name="esquema_offline">OFFLINE</string>
+    <string name="tv_dialog_menu_editar_item">Editar Item</string>
+    <string name="tv_dialog_menu_eliminar_item">Eliminar Item</string>
+
+</resources>

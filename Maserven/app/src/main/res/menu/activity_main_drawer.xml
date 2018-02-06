@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/registra_cliente"
+            android:icon="@drawable/ic_people_black_24dp"
+            android:title="Registrar Cliente" />
+        <item
+            android:id="@+id/mis_productos"
+            android:icon="@drawable/ic_apps_black_24dp"
+            android:title="Mis Producos" />
+        <!--item
+            android:id="@+id/mis_pedidos"
+            android:icon="@drawable/ic_shopping_cart_black_24dp"
+            android:title="Mis Pedidos" />
+
+
+        <item
+            android:id="@+id/estatus_pedido"
+            android:icon="@drawable/ic_format_list_numbered_black_24dp"
+            android:title="Estatus de Pedidos" /-->
+
+    </group>
+
+    <item android:title="Configuración"
+          android:icon="@drawable/ic_menu_manage">
+        <menu>
+            <!--item
+                android:id="@+id/cambiar_contrasenia"
+                android:icon="@drawable/ic_vpn_key_black_24dp"
+                android:title="Cambiar Contraseña" /-->
+            <item
+                android:id="@+id/cerrar_sesion"
+                android:icon="@drawable/ic_highlight_off_black_24dp"
+                android:title="Cerrar Sesión" />
+            <item
+                android:id="@+id/salir"
+                android:icon="@drawable/ic_exit_to_app_black_24dp"
+                android:title="Salir" />
+        </menu>
+    </item>
+
+</menu>
