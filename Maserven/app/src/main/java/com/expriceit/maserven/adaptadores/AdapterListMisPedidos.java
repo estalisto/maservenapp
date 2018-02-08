@@ -1,6 +1,8 @@
 package com.expriceit.maserven.adaptadores;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.text.Layout;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,6 +63,10 @@ public class AdapterListMisPedidos extends BaseAdapter {
         TextView fecha_registro = (TextView) view.findViewById(R.id.tv_list_pedidos_fecha_pedido);
         TextView fecha_sincronizacion = (TextView) view.findViewById(R.id.tv_list_pedidos_fecha_sync);
         ImageButton btn_sincronizar = (ImageButton)view.findViewById(R.id.bt_list_pedidos_sync);
+        TextView sync_ok = (TextView) view.findViewById(R.id.txt_syncOK);
+        ViewGroup layout_sync_ok = (ViewGroup) view.findViewById(R.id.layout_sync);
+
+
 
         id_pedido.setText(Long.toString(pedidosArrayList.get(i).getId()));
         num_pedido.setText(pedidosArrayList.get(i).getNum_pedido());
@@ -74,8 +80,12 @@ public class AdapterListMisPedidos extends BaseAdapter {
         fecha_registro.setText(pedidosArrayList.get(i).getFecha_registro());
         fecha_sincronizacion.setText(pedidosArrayList.get(i).getFecha_sincronizacion());
         if(pedidosArrayList.get(i).getSincronizado().equals("N")){
+            sync_ok.setText(":(");
+            layout_sync_ok.setBackgroundColor(Color.parseColor("#f4dfbc"));
             btn_sincronizar.setBackgroundResource(R.drawable.ic_highlight_off_black_24dp);
         }else{
+            layout_sync_ok.setBackgroundColor(Color.parseColor("#eff9e1"));
+            sync_ok.setText("OK");
             btn_sincronizar.setBackgroundResource(R.drawable.ic_done_all_black_24dp);
         }
 

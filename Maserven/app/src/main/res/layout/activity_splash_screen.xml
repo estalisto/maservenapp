@@ -33,10 +33,11 @@
         android:id="@+id/textView6"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/textView"
+        android:layout_alignRight="@+id/textView"
+        android:layout_below="@+id/progressBar5"
         android:layout_marginTop="17dp"
         android:gravity="center_horizontal"
         android:text="@string/loadgif"
-        android:layout_below="@+id/progressBar5"
-        android:layout_alignRight="@+id/textView"
-        android:layout_alignEnd="@+id/textView" />
+        android:textColor="@android:color/background_light" />
 </RelativeLayout>

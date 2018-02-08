@@ -45,6 +45,7 @@ import com.expriceit.maserven.entities.ConsultaCliente;
 import com.expriceit.maserven.entities.ItemListPedidos;
 import com.expriceit.maserven.entities.Items;
 import com.expriceit.maserven.entities.PersonaModel;
+import com.expriceit.maserven.entities.SyncPedidosWS;
 import com.expriceit.maserven.mismodelos.Clientes;
 import com.expriceit.maserven.mismodelos.DetallePedidos;
 import com.expriceit.maserven.mismodelos.Jobs;
@@ -84,6 +85,7 @@ public class MainActivity extends AppCompatActivity
     String KEY_PASS="pass";
     String DESCRIPCION_PROD = "descripcion";
     ImageButton img_consul_cli, img_reg_cliente,img_add_items;
+    ImageButton btn_sync, btn_update_suma;
     Boolean lb_newPedido=false;
     Spinner opciones;
     public ListView ListProductos,miListadePedidos,mis_pedidos_diarios_listv,ListaMisClientes;
@@ -96,12 +98,15 @@ public class MainActivity extends AppCompatActivity
     private List<String> lstSource = new ArrayList<>();
     private int TipoConsulta=0;
     Button btnConsultaItem,btnConsultaClienteOK;
+
     EditText dlg_cantidad;
     private ArrayList<ItemListPedidos.getItems> model2;
 
     private ListView lvProductos;
     private Call<Items.DatosItem> CallItems;
     private Call<AllConsultaClientesWS.DatosCliente> CallClientes;
+    private Call<SyncPedidosWS.DatosPedidos> callInsertPedidos;
+    private Call<SyncPedidosWS.DatosDetPedidos> callInsertDetPedidos;
     private ItemListPedidos.getItems m;
     private Call<ConsultaCliente.getCliente> CallConsulCliente;
     //Modelos
@@ -114,7 +119,7 @@ public class MainActivity extends AppCompatActivity
     private DetallePedidos detallepedido;
     public List<DetallePedidos> list_detalles_pedidos;
     public ArrayList<DetallePedidos> arrayList_detalles_pedidos;
-    ProgressBar progresConsulItem,progressBarListClientes;
+    ProgressBar progresConsulItem,progressBarListClientes, progres_sync;
 
 
     @Override
@@ -151,6 +156,8 @@ public class MainActivity extends AppCompatActivity
         IdPedido = (TextView) findViewById(R.id.textID_Pedido);
         ChkAgregarClinte = (CheckBox) findViewById(R.id.checkBoxAgregarCliente);
         mis_pedidos_diarios_listv = (ListView) findViewById(R.id.list_mis_pedidos_diarios);
+        btn_update_suma = (ImageButton) findViewById(R.id.img_btn_update_sum);
+
 
 
         FrameConsultaCliente =(FrameLayout) findViewById(R.id.frameConsultaCliente);
@@ -187,6 +194,8 @@ public class MainActivity extends AppCompatActivity
                     AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
             final View mView = getLayoutInflater().inflate(R.layout.dialog_menu_list_pedidos,null);
             ImageButton btn_Editar = (ImageButton) mView.findViewById(R.id.img_btn_editar);
+                     btn_sync = (ImageButton) mView.findViewById(R.id.img_btn_sincronizar);
+                    progres_sync = (ProgressBar) mView.findViewById(R.id.progressBar11);
                     ImageButton btn_eliminar = (ImageButton) mView.findViewById(R.id.img_btn_eliminar);
 
                     mBuilder.setView(mView);
@@ -227,7 +236,33 @@ public class MainActivity extends AppCompatActivity
                         @Override
                         public void onClick(View view) {
                             consultar_mi_pedido_db(Integer.parseInt(itemPedido.getId().toString()));
+
                             dialogMenu.dismiss();
+                        }
+                    });
+                    btn_sync.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            progres_sync.setVisibility(View.VISIBLE);
+                            btn_sync.setVisibility(View.GONE);
+
+                            pedidos = new Pedidos();
+                            pedidos = Pedidos.findById(Pedidos.class,Integer.parseInt(itemPedido.getId().toString()));
+                            pedidos.getNum_pedido();
+                            if(pedidos.getNum_pedido().equals("0")){
+
+
+                                enviarPedidoID(Integer.parseInt(itemPedido.getId().toString()));
+
+                            }else{
+                                Toast.makeText(MainActivity.this, "El Pedido esta Sincronizado...", Toast.LENGTH_SHORT).show();
+                                //progres_sync.setVisibility(View.INVISIBLE);
+                                //btn_sync.setEnabled(true);
+                                progres_sync.setVisibility(View.GONE);
+                                btn_sync.setVisibility(View.VISIBLE);
+                            }
+
+
                         }
                     });
 
@@ -254,6 +289,13 @@ public class MainActivity extends AppCompatActivity
         consulta_mis_pedidos();
         //       miListadePedidos.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
+
+        btn_update_suma.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SumaTotales();
+            }
+        });
 
        /************
         try{
@@ -442,7 +484,9 @@ public class MainActivity extends AppCompatActivity
                 try{
                     final ItemListPedidos.getItems item = (ItemListPedidos.getItems) adapterListPedido.getItem(id);
                         final int miItem =id;
-                Log.w("Eliminar", "Esta Seleccionando el siguiente Item:"+item.getCodigo_interno()+" - "+item.getDescripcion());
+                    Toast.makeText(MainActivity.this, "Item Seleccionado"+miItem, Toast.LENGTH_SHORT).show();
+
+                    Log.w("Eliminar", "Esta Seleccionando el siguiente Item:"+item.getCodigo_interno()+" - "+item.getDescripcion());
 
                     AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
                     final View mView = getLayoutInflater().inflate(R.layout.dialog_menu_item,null);
@@ -484,13 +528,14 @@ public class MainActivity extends AppCompatActivity
                             dialogo1.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialogo1, int id) {
                                     Log.w("Eliminando: ","ItemList: "+Integer.toString(id));
-                                    model2.remove(id);
+                                    model2.remove(miItem);
                                     Log.w("Eliminando de la Lista el: ","Item: "+item.getIdItem());
                                     eliminarItem(Integer.parseInt(item.getIdItem()));
                                     Log.w("Eliminando de la Base de datos: ","Item: "+item.getIdItem());
                                     MyListaItemsPedidos(MainActivity.this,model2);
-                                    SumaTotales();
+
                                     dialogMenuItem.dismiss();
+
                                 }
                             });
                             dialogo1.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
@@ -513,13 +558,14 @@ public class MainActivity extends AppCompatActivity
                             dialogo1.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialogo1, int id) {
                                     Log.w("Eliminando: ","ItemList: "+Integer.toString(id));
-                                    model2.remove(id);
+                                    model2.remove(miItem);
                                     Log.w("Eliminando de la Lista el: ","Item: "+item.getIdItem());
                                     eliminarItem(Integer.parseInt(item.getIdItem()));
                                     Log.w("Eliminando de la Base de datos: ","Item: "+item.getIdItem());
                                     MyListaItemsPedidos(MainActivity.this,model2);
-                                    SumaTotales();
+
                                     dialogMenuItem.dismiss();
+                                    //SumaTotales();
                                 }
                             });
                             dialogo1.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
@@ -862,8 +908,8 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.salir) {
 
             AlertDialog.Builder dialogo1 = new AlertDialog.Builder(MainActivity.this);
-            dialogo1.setTitle("Alerta1");
-            dialogo1.setMessage("Esta sefuro que desea salir de la aplicación");
+            dialogo1.setTitle("Alerta!");
+            dialogo1.setMessage("Esta seguro que desea salir de la aplicación");
             dialogo1.setCancelable(false);
             dialogo1.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialogo1, int id) {
@@ -916,6 +962,7 @@ public class MainActivity extends AppCompatActivity
             final EditText editTIdentificacion = (EditText) mView.findViewById(R.id.edit_in_identificacion);
             final EditText editTNombreCliente = (EditText) mView.findViewById(R.id.edit_in_NombreCliente);
             progressBarListClientes = (ProgressBar) mView.findViewById(R.id.progressBar6);
+
             //
             dlgCodCliente = (TextView) mView.findViewById(R.id.textCodCliente);
             dlgRazonSocial = (TextView) mView.findViewById(R.id.textNombreCliente);
@@ -1625,6 +1672,8 @@ public class MainActivity extends AppCompatActivity
           long ID = pedidos.save();
 
           IdPedido.setText(Long.toString(ID));
+          refresh_list_items("0");
+          SumaTotales();
 
           /*pedidos = pedidos.findById(Pedidos.class, ID);
           pedidos.setNom_cliente("STALYN GRANDA");
@@ -1814,10 +1863,18 @@ public void SumaTotales(){
             sumSubtotal =sumSubtotal + (pvp*cant);
 
         }
-        descuent = Double.parseDouble(edt_ma_desc.getText().toString());
+
+        if(edt_ma_desc.getText().toString().isEmpty()){
+            descuent = Double.parseDouble("0");
+        } else {
+            descuent = Double.parseDouble(edt_ma_desc.getText().toString());
+        }
+
+
+
 
         sumIVA = (sumSubtotal-descuent)*0.12;
-        sumTotal = sumSubtotal+sumIVA;
+        sumTotal = sumSubtotal-descuent+sumIVA;
 
 
         Log.w("formateador>>"," sumIVA-->>"+formateador.format(sumIVA));
@@ -1951,6 +2008,10 @@ public void SumaTotales(){
     public  void ConsultadetallesPedidios(String IdPedidoInterno){
 
         try {
+            SimpleDateFormat timeStampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date myDate = new Date();
+            String fecha_creacion = timeStampFormat.format(myDate);
+
             Log.w("list_detalles_pedidos", "IdPedido "+IdPedidoInterno);
               list_detalles_pedidos = DetallePedidos.find(DetallePedidos.class,"IDPEDIDO = ? AND ESTADO = ? AND SINCRONIZADO = ?",IdPedidoInterno,"A","N");
                 for (int i = 0; i < list_detalles_pedidos.size(); i++) {
@@ -1962,6 +2023,18 @@ public void SumaTotales(){
                         list_detalles_pedidos.get(i).getCantidad() + " Valor " +
                         list_detalles_pedidos.get(i).getValor() + " Total " +
                         list_detalles_pedidos.get(i).getTotal());
+                    if(list_detalles_pedidos.get(i).getEstado().toString().equals("A")){
+                        //enviar a detalle
+                        RegistraDetallePedidosWS(IdPedidoInterno,
+                                list_detalles_pedidos.get(i).getCod_inter(),
+                                list_detalles_pedidos.get(i).getCod_alter(),
+                                list_detalles_pedidos.get(i).getCantidad(),
+                                list_detalles_pedidos.get(i).getValor(),
+                                fecha_creacion,
+                                fecha_creacion,
+                                list_detalles_pedidos.get(i).getEstado(),
+                                "0");
+                    }
 
                  }
         }catch (Exception e){
@@ -2060,7 +2133,7 @@ public void SumaTotales(){
             detallepedido = DetallePedidos.findById(DetallePedidos.class,Id);
             detallepedido.setEstado("I");
             detallepedido.save();
-
+            SumaTotales();
             Toast.makeText(MainActivity.this, "El item N°:"+Id+" ha sido Eliminado exitosamente...", Toast.LENGTH_SHORT).show();
 
         }catch (Exception e){
@@ -2245,14 +2318,217 @@ public void refresh_list_items(String IdPedido){
 
             Log.w("eliminarPedido", "Exception: "+e.getMessage());
         }
-
-
-
-
-
     }
 
     //edt_ma_desc.OnKeyListener(new View.OnKeyListener)
 
+/**
+ * http://localhost:7777/MaservenWS/app/RegistraPedidosWS?num_pedido=232&identificacion=0100707207001&numero_ped_app=2&total_pedido=112&subtotal=100&valor_dscto=0&valor_iva=12&email=bareca90@gmail.com
+ */
+
+public void enviarPedidoID(int Id){
+
+    try{
+
+
+        pedidos = new Pedidos();
+        pedidos = Pedidos.findById(Pedidos.class,Id);
+        registraPedidosCab(pedidos.getId().toString(),
+                            pedidos.getIdent_cliente().toString(),
+                            pedidos.getId().toString(),
+                            pedidos.getVal_total().toString(),
+                            pedidos.getVal_bruto().toString(),
+                            pedidos.getVal_descuento().toString(),
+                            pedidos.getVal_iva().toString(),
+                            SharedPreferencesManager.getValorEsperado(getApplicationContext(),PREFERENCIA_INICIO,KEY_USER));
+
+        Toast.makeText(MainActivity.this, "Pedido N°: "+Id+" Enviado...", Toast.LENGTH_SHORT).show();
+        //// TODO: 7/2/2018 Borrar esta opcion es temporal
+       /*pedidos = new Pedidos();
+        pedidos = Pedidos.findById(Pedidos.class,Id);
+        pedidos.setNum_pedido("29002");
+        pedidos.setSincronizado("S");
+        pedidos.save();
+        consulta_mis_pedidos();
+        progres_sync.setVisibility(View.GONE);
+        btn_sync.setVisibility(View.VISIBLE);*/
+
+    }catch (Exception e){
+        e.getStackTrace();
+        btn_sync.setEnabled(true);
+        //progres_sync.setVisibility(View.INVISIBLE);
+        Log.w("eliminarPedido", "Exception: "+e.getMessage());
+    }
+}
+
+
+public void registraPedidosCab(final String num_pedido,
+                               String identificacion,
+                               String numero_ped_app,
+                               String total_pedido,
+                               String subtotal,
+                               String valor_dscto,
+                               String valor_iva,
+                               String email){
+
+
+    Log.w("registraPedidosCab", "identificacion:::" +identificacion );
+    SyncPedidosWS sync_pedidos = MaservenApplication.getApplication().getRestAdapter().create(SyncPedidosWS.class);
+    try{
+        callInsertPedidos = sync_pedidos.setDatosPedidosWS(num_pedido,identificacion,numero_ped_app,total_pedido,subtotal,valor_dscto,valor_iva,email);
+    } catch (IllegalArgumentException e1) {
+        Log.w("registraPedidosCab", "Exception: "+e1.getMessage()+"-- msg"+e1.getStackTrace());
+        e1.printStackTrace();
+    } catch (IllegalStateException e1) {
+        e1.printStackTrace();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    callInsertPedidos.enqueue(new Callback<SyncPedidosWS.DatosPedidos>() {
+        @Override
+        public void onResponse(Call<SyncPedidosWS.DatosPedidos> call, Response<SyncPedidosWS.DatosPedidos> response) {
+            String err = "";
+            try {
+                // err = response.errorBody().toString();
+                Log.w("registraPedidosCab", "Consultando respuesta" +err );
+                if (err.equalsIgnoreCase("")) {
+                    if (response.body() != null) {
+                        if (response.isSuccess()) {
+                            SyncPedidosWS.DatosPedidos otp = response.body();
+
+                            if (otp.getId_pedido().equals("-1")){
+                                Toast.makeText(MainActivity.this, "Problemas al sincronizar el Pedido", Toast.LENGTH_SHORT).show();
+
+                            }else{
+                                pedidos = new Pedidos();
+                                pedidos = Pedidos.findById(Pedidos.class,Integer.parseInt(num_pedido.toString()));
+                                pedidos.setNum_pedido(otp.getId_pedido());
+                                pedidos.setSincronizado("S");
+                                pedidos.save();
+                                Log.e("registraPedidosCab", "Comenzando a Sincronizar el detalle del pedido");
+                                ConsultadetallesPedidios(otp.getId_pedido().toString());
+
+                                progres_sync.setVisibility(View.GONE);
+                                btn_sync.setVisibility(View.VISIBLE);
+                                consulta_mis_pedidos();
+                                Toast.makeText(MainActivity.this, "Pedido sincronizado Correctamente", Toast.LENGTH_SHORT).show();
+                            }
+
+                        } else {
+                            Log.e("registraPedidosCab", "Error en el webservice, success false");
+                            btn_sync.setEnabled(true);
+                            //progres_sync.setVisibility(View.INVISIBLE);
+                        }
+                    } else {
+                        Log.e("registraPedidosCab", "Error de web service, no viene json");
+                        //btn_sync.setEnabled(true);
+                        Toast.makeText(MainActivity.this, "Problemas1 con el servicio,  comuniquese con soporte MASERVEN...", Toast.LENGTH_SHORT).show();
+                        progres_sync.setVisibility(View.GONE);
+                        btn_sync.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    Log.e("registraPedidosCab", "Error en el webservice " + err);
+                    progres_sync.setVisibility(View.GONE);
+                    btn_sync.setVisibility(View.VISIBLE);
+                }
+            } catch (Exception e) {
+
+
+                Toast.makeText(MainActivity.this, "Problemas con el servicio,  comuniquese con soporte MASERVEN...", Toast.LENGTH_SHORT).show();
+                Log.w("registraPedidosCab", "Exception: "+e.getMessage()+"-- msg"+e.getStackTrace());
+                progres_sync.setVisibility(View.GONE);
+                btn_sync.setVisibility(View.VISIBLE);
+
+            }
+        }
+
+        @Override
+        public void onFailure(Call<SyncPedidosWS.DatosPedidos> call, Throwable t) {
+            Log.w("registraPedidosCab", "onFailure - "+t.getMessage());
+            Toast.makeText(MainActivity.this, "Probelmas con la Conexión, intente en unos momentos", Toast.LENGTH_SHORT).show();
+            progres_sync.setVisibility(View.GONE);
+            btn_sync.setVisibility(View.VISIBLE);
+        }
+    });
+
+}
+
+//ConsultadetallesPedidios(ID);
+  public void RegistraDetallePedidosWS(final String num_pedido,
+                                       String codigo_interno,
+                                       String codigo_alterno,
+                                       String cantidad,
+                                       String precio,
+                                       String fecha_creacion,
+                                       String fecha_actualizacion,
+                                       String estado,
+                                       String descuento){
+
+      Log.w("registraPedidosDET", "Sincronizando:::" +num_pedido );
+      SyncPedidosWS sync_pedidos_det = MaservenApplication.getApplication().getRestAdapter().create(SyncPedidosWS.class);
+      try{
+          callInsertDetPedidos = sync_pedidos_det.setDatosDetPedidosWS(num_pedido,codigo_interno,codigo_alterno,cantidad,precio,fecha_creacion,fecha_actualizacion,estado,descuento);
+      } catch (IllegalArgumentException e1) {
+          Log.w("registraPedidosCab", "Exception: "+e1.getMessage()+"-- msg"+e1.getStackTrace());
+          e1.printStackTrace();
+      } catch (IllegalStateException e1) {
+          e1.printStackTrace();
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
+
+      callInsertDetPedidos.enqueue(new Callback<SyncPedidosWS.DatosDetPedidos>() {
+          @Override
+          public void onResponse(Call<SyncPedidosWS.DatosDetPedidos> call, Response<SyncPedidosWS.DatosDetPedidos> response) {
+              String err = "";
+              try {
+                  // err = response.errorBody().toString();
+                  Log.w("registraPedidosCab", "Consultando respuesta" +err );
+                  if (err.equalsIgnoreCase("")) {
+                      if (response.body() != null) {
+                          if (response.isSuccess()) {
+                              SyncPedidosWS.DatosDetPedidos otp = response.body();
+
+                              if (otp.getId_pedido().equals("-1")){
+                                  Toast.makeText(MainActivity.this, "Problemas al sincronizar el Detalle de Pedidos", Toast.LENGTH_SHORT).show();
+
+                              }else{
+                                  Toast.makeText(MainActivity.this, "Detalle Pedido sincronizado Correctamente", Toast.LENGTH_SHORT).show();
+                              }
+
+                          } else {
+                              Log.e("registraPedidosCab", "Error en el webservice, success false");
+
+                          }
+                      } else {
+                          Log.e("registraPedidosCab", "Error de web service, no viene json");
+                          //btn_sync.setEnabled(true);
+                          Toast.makeText(MainActivity.this, "Problemas1 con el servicio,  comuniquese con soporte MASERVEN...", Toast.LENGTH_SHORT).show();
+
+                      }
+                  } else {
+                      Log.e("registraPedidosCab", "Error en el webservice " + err);
+
+                  }
+              } catch (Exception e) {
+
+
+                  Toast.makeText(MainActivity.this, "Problemas con el servicio,  comuniquese con soporte MASERVEN...", Toast.LENGTH_SHORT).show();
+                  Log.w("registraPedidosCab", "Exception: "+e.getMessage()+"-- msg"+e.getStackTrace());
+
+
+              }
+          }
+
+          @Override
+          public void onFailure(Call<SyncPedidosWS.DatosDetPedidos> call, Throwable t) {
+              Log.w("registraPedidosDET", "onFailure - "+t.getMessage());
+              Toast.makeText(MainActivity.this, "Probelmas con la Conexión, intente en unos momentos", Toast.LENGTH_SHORT).show();
+
+          }
+      });
+
+
+  }
 
 }

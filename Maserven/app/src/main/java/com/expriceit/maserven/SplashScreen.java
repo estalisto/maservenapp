@@ -7,7 +7,9 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.expriceit.maserven.activities.MainActivity;
 import com.expriceit.maserven.activities.ValidaPin;
 import com.expriceit.maserven.entities.AccesoUsuario;
 import com.expriceit.maserven.utils.SharedPreferencesManager;
@@ -50,21 +52,20 @@ public class SplashScreen extends Activity {
                 Log.w("Splash_Screen", "registrado"+SharedPreferencesManager.getValorEsperado(getApplicationContext(),PREFERENCIA_INICIO,KEY_USER));
                 if(SharedPreferencesManager.getValorEsperado(getApplicationContext(),PREFERENCIA_INICIO,KEY_USER)!= null && SharedPreferencesManager.getValorEsperado(getApplicationContext(),PREFERENCIA_INICIO,KEY_PASS)!= null){
                     Log.w("Splash_Screen", "Valida el acceso");
-                    Intent intent = new Intent(SplashScreen.this, ValidaPin.class);
+                    Intent intent = new Intent(getBaseContext(), ValidaPin.class);
                     startActivity(intent);
                     finish();
                    // Acceso_usuario(SharedPreferencesManager.getValorEsperado(getApplicationContext(),PREFERENCIA_INICIO,KEY_USER), SharedPreferencesManager.getValorEsperado(getApplicationContext(),PREFERENCIA_INICIO,KEY_PASS));
+                  //  Toast.makeText(getBaseContext(), "Iniciando Validacion", Toast.LENGTH_SHORT).show();
 
                 }else{
-                    Intent intent = new Intent(SplashScreen.this, LoginActivity.class);
+                    Intent intent = new Intent(getBaseContext(), LoginActivity.class);
                     startActivity(intent);
                     finish();
+                   // Toast.makeText(getBaseContext(), "Iniciando Login", Toast.LENGTH_SHORT).show();
+
+
                 }
-
-
-
-
-
             }
         },2000);
     }

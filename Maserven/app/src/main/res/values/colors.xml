@@ -2,11 +2,13 @@
 <resources>
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorAccent">#ed947d</color>
     <color name="countdown_indicator">#71ca00</color>
+    <color name="bck_sync">#eff9e1</color>
     <color name="orange">#f29810</color>
+    <color name="no_sincronizado">#f4dfbc</color>
     <color name="gold">#5a5a5a</color>
-    <color name="ms_blue">#0c86f1</color>
+    <color name="ms_blue">#2e70a8</color>
     <color name="ms_item">#fcf9d2</color>
     <color name="lista_color">#fefdf3</color>
     <color name="lista_mis_pedidos_color">#e4cda0</color>

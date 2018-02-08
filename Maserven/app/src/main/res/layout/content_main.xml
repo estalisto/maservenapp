@@ -202,7 +202,7 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
                         android:orientation="vertical">
 
                         <LinearLayout
@@ -215,7 +215,6 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="IDENTIFICACIÓN:"
-                                android:textColor="@android:color/holo_blue_dark"
                                 android:textSize="8sp"
                                 android:textStyle="bold" />
 
@@ -224,7 +223,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0000000000000"
-                                android:textColor="@android:color/background_dark"
+                                android:textColor="@android:color/holo_blue_dark"
                                 android:textSize="12sp"
                                 android:textStyle="bold" />
 
@@ -232,7 +231,7 @@
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:orientation="vertical">
 
                             <TextView
@@ -240,16 +239,15 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:text="CLIENTE:"
-                                android:textColor="@android:color/holo_blue_dark"
                                 android:textSize="8sp"
                                 android:textStyle="bold" />
 
                             <TextView
                                 android:id="@+id/tv_TMCliente"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
+                                android:layout_height="31dp"
                                 android:text="CONSUMIDOR FINAL"
-                                android:textColor="@android:color/background_dark"
+                                android:textColor="@android:color/holo_blue_dark"
                                 android:textSize="12sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -296,6 +294,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
                     android:orientation="horizontal">
 
                     <LinearLayout
@@ -308,16 +307,16 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="SUBTOTAL:"
-                            android:textAlignment="textEnd"
+                            android:textAlignment="viewStart"
                             android:textSize="8sp" />
 
                         <TextView
                             android:id="@+id/ma_tv_subtotal"
                             android:layout_width="70dp"
-                            android:layout_height="24dp"
+                            android:layout_height="30dp"
                             android:gravity="center_vertical"
                             android:text="0.00"
-                            android:textAlignment="textEnd"
+                            android:textAlignment="viewStart"
                             android:textColor="@color/gold"
                             android:textSize="10sp"
                             android:textStyle="bold" />
@@ -333,7 +332,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="DESCUENTO:"
-                            android:textAlignment="textEnd"
+                            android:textAlignment="viewStart"
                             android:textSize="8sp" />
 
                         <EditText
@@ -343,9 +342,10 @@
                             android:ems="10"
                             android:inputType="textPersonName|number|numberDecimal"
                             android:text="0.00"
-                            android:textAlignment="viewEnd"
+                            android:textAlignment="center"
                             android:textColor="@color/gold"
-                            android:textSize="10sp" />
+                            android:textSize="8sp"
+                            android:textStyle="bold" />
 
                     </LinearLayout>
 
@@ -360,47 +360,54 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="I.V.A.:"
-                            android:textAlignment="textEnd"
-                            android:textSize="10sp" />
+                            android:textAlignment="viewStart"
+                            android:textSize="8sp" />
 
                         <TextView
                             android:id="@+id/ma_tv_iva"
                             android:layout_width="70dp"
-                            android:layout_height="24dp"
+                            android:layout_height="30dp"
                             android:layout_weight="0.01"
                             android:gravity="center_vertical"
                             android:text="0.00"
-                            android:textAlignment="viewEnd"
+                            android:textAlignment="viewStart"
                             android:textColor="@color/gold"
                             android:textSize="10sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="89dp"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:weightSum="1">
 
                         <TextView
                             android:id="@+id/textView73"
-                            android:layout_width="106dp"
+                            android:layout_width="88dp"
                             android:layout_height="wrap_content"
                             android:text="TOTAL:"
-                            android:textAlignment="textEnd"
+                            android:textAlignment="viewStart"
                             android:textSize="8sp" />
 
                         <TextView
                             android:id="@+id/ma_tv_total"
-                            android:layout_width="100dp"
-                            android:layout_height="24dp"
+                            android:layout_width="87dp"
+                            android:layout_height="30dp"
                             android:gravity="center_vertical"
                             android:text="0.00"
-                            android:textAlignment="textEnd"
+                            android:textAlignment="viewStart"
                             android:textColor="@android:color/background_dark"
                             android:textSize="12sp"
                             android:textStyle="bold" />
+
                     </LinearLayout>
+
+                    <ImageButton
+                        android:id="@+id/img_btn_update_sum"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:srcCompat="@drawable/ic_sync_black_24dp" />
                 </LinearLayout>
 
                 <LinearLayout
