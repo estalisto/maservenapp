@@ -15,7 +15,7 @@
     <string name="registrar">REGISTRAR</string>
     <string name="olvido_contrasenia">¿Olvidó su Contraseña?</string>
     <string name="iniciar_sesion">Iniciar Sesión</string>
-    <string name="server_localhost">http://200.125.204.106:8080//MaservenWS/app/</string>
+    <string name="server_localhost">http://200.125.204.106:8080/MaservenWS/app/</string>
     <string name="title_activity_main">MainActivity</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>

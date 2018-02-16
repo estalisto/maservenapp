@@ -107,6 +107,7 @@ public class MainActivity extends AppCompatActivity
     private Call<AllConsultaClientesWS.DatosCliente> CallClientes;
     private Call<SyncPedidosWS.DatosPedidos> callInsertPedidos;
     private Call<SyncPedidosWS.DatosDetPedidos> callInsertDetPedidos;
+    private Call<SyncPedidosWS.DatosEnviados> callPedidoEnviado;
     private ItemListPedidos.getItems m;
     private Call<ConsultaCliente.getCliente> CallConsulCliente;
     //Modelos
@@ -249,6 +250,16 @@ public class MainActivity extends AppCompatActivity
                             pedidos = new Pedidos();
                             pedidos = Pedidos.findById(Pedidos.class,Integer.parseInt(itemPedido.getId().toString()));
                             pedidos.getNum_pedido();
+                            if(pedidos.getIdent_cliente().equals("0000000000000")){
+                                Utils.generarAlerta(MainActivity.this, "ALERTA!", "Favor ingrese el Cliente que realiza el Pedido");
+
+                                progres_sync.setVisibility(View.GONE);
+                                btn_sync.setVisibility(View.VISIBLE);
+                                return;
+
+                            }
+
+
                             if(pedidos.getNum_pedido().equals("0")){
 
 
@@ -1398,7 +1409,7 @@ public class MainActivity extends AppCompatActivity
                         //todo agrega Item al Pedido
                         Log.w("CallItems", "Insertando.. "+dlg_CodInterno.getText().toString());
                         idItem =  registra_items_pedido(IdPedido.getText().toString(),"0","0",dlg_CodAlterno.getText().toString(),
-                                dlg_CodInterno.getText().toString().toString(),"",dlg_Descripcion.getText().toString(),Double.toString(Cantidad),Double.toString(Total),Double.toString(Total*.12),Double.toString(Total+(Total*.12)),"A","N");
+                                dlg_CodInterno.getText().toString().toString(),"",dlg_Descripcion.getText().toString(),Double.toString(Cantidad),Double.toString(precioUnitario),Double.toString(Total*.12),Double.toString(Total+(Total*.12)),"A","N");
 
                         m = new ItemListPedidos.getItems();
                         m.setIdItem(Long.toString(idItem));
@@ -1418,7 +1429,7 @@ public class MainActivity extends AppCompatActivity
                     //todo Agrega Nuevo Item al Pedido
                     Log.w("CallItems", "llenando la Lista con el Item"+dlg_CodInterno.getText().toString());
                     idItem = registra_items_pedido(IdPedido.getText().toString(),"0","0",dlg_CodAlterno.getText().toString(),
-                            dlg_CodInterno.getText().toString().toString(),"",dlg_Descripcion.getText().toString(),Double.toString(Cantidad),Double.toString(Total),Double.toString(Total*.12),Double.toString(Total+(Total*.12)),"A","N");
+                            dlg_CodInterno.getText().toString().toString(),"",dlg_Descripcion.getText().toString(),Double.toString(Cantidad),Double.toString(precioUnitario),Double.toString(Total*.12),Double.toString(Total+(Total*.12)),"A","N");
 
                     m = new ItemListPedidos.getItems();
                     m.setIdItem(Long.toString(idItem));
@@ -1666,7 +1677,8 @@ public class MainActivity extends AppCompatActivity
           SimpleDateFormat timeStampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
           Date myDate = new Date();
           String fecha_creacion = timeStampFormat.format(myDate);
-
+          np_identificacion.setText("0000000000000");
+          np_cliente.setText("CONSUMIDOR FINAL");
 
           pedidos = new Pedidos("0","0","0000000000000","CONSUMIDOR FINAL","0.00","0.00","0.00","0.00","A","N",fecha_creacion,SharedPreferencesManager.getValorEsperado(this,PREFERENCIA_INICIO,KEY_USER),"");
           long ID = pedidos.save();
@@ -1759,10 +1771,22 @@ public long registra_items_pedido(String idItem, String num_pedido, String num_f
         //todo REGISTRA ITEMS DEl PEDIDO EN LA BASE DE DATOS
         detallepedido = new DetallePedidos(idItem, num_pedido, num_fact, cod_alter, cod_inter, linea, descripcion, cantidad, valor, iva, total, estado, sincronizado);
         ITEM = detallepedido.save();
+        Log.w("ItemPedidos", " Id: " +idItem +
+                " Pedido: " + num_pedido +
+                " NumPedido: " + num_pedido +
+                " Numfactura: " + num_fact +
+                " descr: " + descripcion +
+                " cod alt: " + cod_alter +
+                " cod int:" + cod_inter +
+                " cantidad:" + cantidad +
+                " valor.: " + valor +
+                " estado: " + estado +
+                " total: " + total +
+                " Sincronizado.: " + sincronizado);
 
         Toast.makeText(MainActivity.this, "Item guardado: " + ITEM + " >> ", Toast.LENGTH_SHORT).show();
 
-        List<DetallePedidos> detpedidoslist = DetallePedidos.listAll(DetallePedidos.class);
+      /*  List<DetallePedidos> detpedidoslist = DetallePedidos.listAll(DetallePedidos.class);
 
 
         for (DetallePedidos j : detpedidoslist) {
@@ -1779,7 +1803,7 @@ public long registra_items_pedido(String idItem, String num_pedido, String num_f
                     " total: " + j.getTotal() +
                     " Sincronizado.: " + j.getSincronizado());
 
-        }
+        }*/
 
 
     } catch (Exception e) {
@@ -2005,7 +2029,7 @@ public void SumaTotales(){
         });
 
     }
-    public  void ConsultadetallesPedidios(String IdPedidoInterno){
+    public  void ConsultadetallesPedidios(String IdPedidoInterno, String PedidoExterno){
 
         try {
             SimpleDateFormat timeStampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -2014,18 +2038,20 @@ public void SumaTotales(){
 
             Log.w("list_detalles_pedidos", "IdPedido "+IdPedidoInterno);
               list_detalles_pedidos = DetallePedidos.find(DetallePedidos.class,"IDPEDIDO = ? AND ESTADO = ? AND SINCRONIZADO = ?",IdPedidoInterno,"A","N");
+            Log.w("list_detalles_pedidos", "Cantidad de Registros en el detalle "+list_detalles_pedidos.size());
                 for (int i = 0; i < list_detalles_pedidos.size(); i++) {
 
-                Log.w("list_detalles_pedidos", "Detalles - ID " + list_detalles_pedidos.get(i).getId() + " Id_pedido " + list_detalles_pedidos.get(i).getId_pedido() + " Cod_alter " +
+                Log.w("list_detalles_pedidos", "Detalles - ID " + list_detalles_pedidos.get(i).getId() + " Id_pedido_intero " + list_detalles_pedidos.get(i).getId_pedido() + " Cod_alter " +
                         list_detalles_pedidos.get(i).getCod_alter() + " Cod_inter " +
                         list_detalles_pedidos.get(i).getCod_inter() + " Descripcion " +
                         list_detalles_pedidos.get(i).getDescripcion() + " Cantidad " +
                         list_detalles_pedidos.get(i).getCantidad() + " Valor " +
                         list_detalles_pedidos.get(i).getValor() + " Total " +
-                        list_detalles_pedidos.get(i).getTotal());
+                        list_detalles_pedidos.get(i).getTotal() + " Estado " +
+                        list_detalles_pedidos.get(i).getEstado());
                     if(list_detalles_pedidos.get(i).getEstado().toString().equals("A")){
                         //enviar a detalle
-                        RegistraDetallePedidosWS(IdPedidoInterno,
+                        RegistraDetallePedidosWS(PedidoExterno,
                                 list_detalles_pedidos.get(i).getCod_inter(),
                                 list_detalles_pedidos.get(i).getCod_alter(),
                                 list_detalles_pedidos.get(i).getCantidad(),
@@ -2388,8 +2414,7 @@ public void registraPedidosCab(final String num_pedido,
         @Override
         public void onResponse(Call<SyncPedidosWS.DatosPedidos> call, Response<SyncPedidosWS.DatosPedidos> response) {
             String err = "";
-            try {
-                // err = response.errorBody().toString();
+            try{
                 Log.w("registraPedidosCab", "Consultando respuesta" +err );
                 if (err.equalsIgnoreCase("")) {
                     if (response.body() != null) {
@@ -2406,8 +2431,10 @@ public void registraPedidosCab(final String num_pedido,
                                 pedidos.setSincronizado("S");
                                 pedidos.save();
                                 Log.e("registraPedidosCab", "Comenzando a Sincronizar el detalle del pedido");
-                                ConsultadetallesPedidios(otp.getId_pedido().toString());
-
+                                Log.e("registraPedidosCab", "Pedido Interno:"+num_pedido.toString()+" Pedido externo: "+otp.getId_pedido().toString());
+                                ConsultadetallesPedidios(num_pedido.toString(),otp.getId_pedido().toString());
+                                Log.e("registraPedidosCab", "Enviando el Correo - IDPedido: "+otp.getId_pedido().toString()+" Nombre Archivo: "+otp.getNombre_archivo().toString()+"email: stalyn.granda@hotmail.com");
+                                GenerarDocumento(otp.getId_pedido().toString(),otp.getNombre_archivo().toString(),"stalyn.granda@hotmail.com");
                                 progres_sync.setVisibility(View.GONE);
                                 btn_sync.setVisibility(View.VISIBLE);
                                 consulta_mis_pedidos();
@@ -2419,7 +2446,8 @@ public void registraPedidosCab(final String num_pedido,
                             btn_sync.setEnabled(true);
                             //progres_sync.setVisibility(View.INVISIBLE);
                         }
-                    } else {
+
+                    }else {
                         Log.e("registraPedidosCab", "Error de web service, no viene json");
                         //btn_sync.setEnabled(true);
                         Toast.makeText(MainActivity.this, "Problemas1 con el servicio,  comuniquese con soporte MASERVEN...", Toast.LENGTH_SHORT).show();
@@ -2431,6 +2459,8 @@ public void registraPedidosCab(final String num_pedido,
                     progres_sync.setVisibility(View.GONE);
                     btn_sync.setVisibility(View.VISIBLE);
                 }
+
+
             } catch (Exception e) {
 
 
@@ -2529,6 +2559,72 @@ public void registraPedidosCab(final String num_pedido,
       });
 
 
+  }
+
+  public void GenerarDocumento(String num_pedido,String nombre_archivo,String email){
+
+      Log.w("GenerarDocumento", "Sincronizando:::" +num_pedido );
+      SyncPedidosWS generar_pedido = MaservenApplication.getApplication().getRestAdapter().create(SyncPedidosWS.class);
+      try{
+          callPedidoEnviado = generar_pedido.setDatosEnviadosWS(num_pedido,nombre_archivo,email);// .setDatosDetPedidosWS(num_pedido,codigo_interno,codigo_alterno,cantidad,precio,fecha_creacion,fecha_actualizacion,estado,descuento);
+      } catch (IllegalArgumentException e1) {
+          Log.w("GenerarDocumento", "Exception: "+e1.getMessage()+"-- msg"+e1.getStackTrace());
+          e1.printStackTrace();
+      } catch (IllegalStateException e1) {
+          e1.printStackTrace();
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
+      callPedidoEnviado.enqueue(new Callback<SyncPedidosWS.DatosEnviados>() {
+          @Override
+          public void onResponse(Call<SyncPedidosWS.DatosEnviados> call, Response<SyncPedidosWS.DatosEnviados> response) {
+              String err = "";
+              try {
+                  // err = response.errorBody().toString();
+                  Log.w("GenerarDocumento", "Consultando respuesta" +err );
+                  if (err.equalsIgnoreCase("")) {
+                      if (response.body() != null) {
+                          if (response.isSuccess()) {
+                              SyncPedidosWS.DatosEnviados otp = response.body();
+
+                              if (otp.getCodigo().equals("1")){
+                                  Toast.makeText(MainActivity.this, "Pedido Generado Exitosamente", Toast.LENGTH_SHORT).show();
+
+                              }else{
+                                  Toast.makeText(MainActivity.this, "Problemas al Generar el Documento del Pedido en PDF", Toast.LENGTH_SHORT).show();
+                              }
+
+                          } else {
+                              Log.e("GenerarDocumento", "Error en el webservice, success false");
+
+                          }
+                      } else {
+                          Log.e("GenerarDocumento", "Error de web service, no viene json");
+                          //btn_sync.setEnabled(true);
+                          Toast.makeText(MainActivity.this, "Problemas1 con el servicio,  comuniquese con soporte MASERVEN...", Toast.LENGTH_SHORT).show();
+
+                      }
+                  } else {
+                      Log.e("GenerarDocumento", "Error en el webservice " + err);
+
+                  }
+              } catch (Exception e) {
+
+
+                  Toast.makeText(MainActivity.this, "Problemas con el servicio,  comuniquese con soporte MASERVEN...", Toast.LENGTH_SHORT).show();
+                  Log.w("GenerarDocumento", "Exception: "+e.getMessage()+"-- msg"+e.getStackTrace());
+
+
+              }
+          }
+
+          @Override
+          public void onFailure(Call<SyncPedidosWS.DatosEnviados> call, Throwable t) {
+              Log.w("GenerarDocumento", "onFailure - "+t.getMessage());
+              Toast.makeText(MainActivity.this, "Documento Generado, Revisar su Correo Electrónico.", Toast.LENGTH_SHORT).show();
+
+          }
+      });
   }
 
 }

@@ -44,8 +44,16 @@ public interface SyncPedidosWS {
                                          @Query("estado") String estado,
                                          @Query("descuento") String descuento);
     Call<DatosDetPedidos> setDatosDetPedidosWS();
+
+
+    @GET("EnviarDocumento")
+    Call<DatosEnviados> setDatosEnviadosWS(@Query("num_pedido") String num_pedido,
+                                               @Query("nombre_archivo") String nombre_archivo,
+                                               @Query("email") String email);
+    Call<DatosEnviados> setDatosEnviadosWS();
     public class DatosPedidos {
         private String id_pedido;
+        private String nombre_archivo;
         public String getId_pedido() {
             return id_pedido;
         }
@@ -54,8 +62,13 @@ public interface SyncPedidosWS {
             this.id_pedido = id_pedido;
         }
 
+        public String getNombre_archivo() {
+            return nombre_archivo;
+        }
 
-
+        public void setNombre_archivo(String nombre_archivo) {
+            this.nombre_archivo = nombre_archivo;
+        }
     }
     public class DatosDetPedidos {
         private String id_pedido;
@@ -70,4 +83,26 @@ public interface SyncPedidosWS {
 
 
     }
+    public class DatosEnviados {
+        private String codigo;
+        private String mensaje;
+
+        public String getCodigo() {
+            return codigo;
+        }
+
+        public void setCodigo(String codigo) {
+            this.codigo = codigo;
+        }
+
+        public String getMensaje() {
+            return mensaje;
+        }
+
+        public void setMensaje(String mensaje) {
+            this.mensaje = mensaje;
+        }
+    }
+
+
 }
