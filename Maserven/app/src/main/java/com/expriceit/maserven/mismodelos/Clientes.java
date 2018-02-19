@@ -7,7 +7,7 @@ import com.orm.dsl.Table;
  * Created by stalyn on 9/1/2018.
  */
 
-public class Clientes  extends SugarRecord {
+    public class Clientes  extends SugarRecord {
 
     public String codigo;
     public String idetificacion;
