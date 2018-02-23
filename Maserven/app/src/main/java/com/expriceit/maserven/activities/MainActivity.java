@@ -46,6 +46,7 @@ import com.expriceit.maserven.entities.ItemListPedidos;
 import com.expriceit.maserven.entities.Items;
 import com.expriceit.maserven.entities.PersonaModel;
 import com.expriceit.maserven.entities.SyncPedidosWS;
+import com.expriceit.maserven.entities.SyncTodosPedidosWS;
 import com.expriceit.maserven.mismodelos.Clientes;
 import com.expriceit.maserven.mismodelos.DetallePedidos;
 import com.expriceit.maserven.mismodelos.Jobs;
@@ -73,7 +74,7 @@ public class MainActivity extends AppCompatActivity
     FrameLayout Fragment_cli,FrameConsultaCliente,FrameRegistraCliente,FrameNewPedido,Frame_lista_pedidos,FramePedidosDiariosOk;
    // LayoutInflater Layout_ConsultarCliente,Layout_RegistraCliente;
     TextView IdPedido, TextMenu_ConsultarCliente, TextMenu_RegistrarCliente, TextCodigoCliente, TextNombreCliente, TextNombreUser,Tv_Descripcion,Tv_Cod_Interno,Tv_Cod_alterno,Tv_PVP,Tv_Stock,dlgCodCliente,dlgRazonSocial,np_identificacion,np_cliente;
-    TextView tv_ma_subtotal,tv_ma_iva,tv_ma_total;
+    TextView tv_ma_subtotal,tv_ma_iva,tv_ma_total,tv_pedido_sincronizado, tv_menu_item_detele, tv_menu_item_edit;
     EditText edt_ma_desc;
     CheckBox ChkAgregarClinte;
     EditText Edit_in_identificaion, dato_consultar,ma_Codigo,ma_identificacion,ma_cliente,rc_identificacion,rc_nombre_cliente;
@@ -108,6 +109,7 @@ public class MainActivity extends AppCompatActivity
     private Call<SyncPedidosWS.DatosPedidos> callInsertPedidos;
     private Call<SyncPedidosWS.DatosDetPedidos> callInsertDetPedidos;
     private Call<SyncPedidosWS.DatosEnviados> callPedidoEnviado;
+    private Call<SyncTodosPedidosWS.MisPedidos> callMisPedidosWS;
     private ItemListPedidos.getItems m;
     private Call<ConsultaCliente.getCliente> CallConsulCliente;
     //Modelos
@@ -121,7 +123,9 @@ public class MainActivity extends AppCompatActivity
     public List<DetallePedidos> list_detalles_pedidos;
     public ArrayList<DetallePedidos> arrayList_detalles_pedidos;
     ProgressBar progresConsulItem,progressBarListClientes, progres_sync;
-
+    String IDPedidoInternoAPP;
+    String IDPedidoExternoAPP;
+    String NombreArchivoAPP;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,6 +140,7 @@ public class MainActivity extends AppCompatActivity
         Frame_lista_pedidos.setVisibility(View.VISIBLE);
         TextMenu_ConsultarCliente = (TextView) findViewById(R.id.textMenuConsultarCliente);
         TextMenu_RegistrarCliente = (TextView) findViewById(R.id.textMenuRegistrarCliente);
+
 
         Tv_Descripcion = (TextView) findViewById(R.id.tv_descripcion);
         Tv_Cod_Interno = (TextView) findViewById(R.id.tv_codigo_interno);
@@ -158,6 +163,7 @@ public class MainActivity extends AppCompatActivity
         ChkAgregarClinte = (CheckBox) findViewById(R.id.checkBoxAgregarCliente);
         mis_pedidos_diarios_listv = (ListView) findViewById(R.id.list_mis_pedidos_diarios);
         btn_update_suma = (ImageButton) findViewById(R.id.img_btn_update_sum);
+        tv_pedido_sincronizado=(TextView) findViewById(R.id.tv_pp_sncronizado);
 
 
 
@@ -180,7 +186,9 @@ public class MainActivity extends AppCompatActivity
         ma_Codigo = (EditText)findViewById(R.id.editTMCodigo);
         ma_cliente = (EditText)findViewById(R.id.editTMCliente);
         ma_identificacion = (EditText) findViewById(R.id.editTMIdentificacion);
-
+        IDPedidoInternoAPP="";
+        IDPedidoExternoAPP="";
+        NombreArchivoAPP="";
 
 
         mis_pedidos_diarios_listv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -195,13 +203,29 @@ public class MainActivity extends AppCompatActivity
                     AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
             final View mView = getLayoutInflater().inflate(R.layout.dialog_menu_list_pedidos,null);
             ImageButton btn_Editar = (ImageButton) mView.findViewById(R.id.img_btn_editar);
-                     btn_sync = (ImageButton) mView.findViewById(R.id.img_btn_sincronizar);
+
+
+                    btn_sync = (ImageButton) mView.findViewById(R.id.img_btn_sincronizar);
                     progres_sync = (ProgressBar) mView.findViewById(R.id.progressBar11);
                     ImageButton btn_eliminar = (ImageButton) mView.findViewById(R.id.img_btn_eliminar);
+
+                    tv_menu_item_detele=(TextView) mView.findViewById(R.id.tv_menu_item_eliminar);
+                    tv_menu_item_edit=(TextView) mView.findViewById(R.id.tv_menu_item_editar);
+
 
                     mBuilder.setView(mView);
                     final AlertDialog dialogMenu = mBuilder.create();
                     dialogMenu.show();
+                    if(itemPedido.getSincronizado().toString().equals("S")){
+                        btn_eliminar.setVisibility(View.GONE);
+                        tv_menu_item_detele.setVisibility(View.GONE);
+                        tv_menu_item_edit.setText("VER");
+                        btn_Editar.setImageResource(R.drawable.ic_visibility_black_24dp);
+                    }else{
+                        tv_menu_item_edit.setText("EDITAR");
+                        //ic_visibility_black_24dp
+                        btn_Editar.setImageResource(R.drawable.ic_edit_black_24dp);
+                    }
 
                     btn_eliminar.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -304,6 +328,11 @@ public class MainActivity extends AppCompatActivity
         btn_update_suma.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                if(tv_pedido_sincronizado.getText().toString().equals("S")){
+                    Utils.generarAlerta(MainActivity.this, "ALERTA!", "No es Posible Modificar el Pedido ya se encuentra Sincronizado.");
+                    return;
+                }
                 SumaTotales();
             }
         });
@@ -496,6 +525,12 @@ public class MainActivity extends AppCompatActivity
                     final ItemListPedidos.getItems item = (ItemListPedidos.getItems) adapterListPedido.getItem(id);
                         final int miItem =id;
                     Toast.makeText(MainActivity.this, "Item Seleccionado"+miItem, Toast.LENGTH_SHORT).show();
+
+                    if(tv_pedido_sincronizado.getText().toString().equals("S")){
+                        Utils.generarAlerta(MainActivity.this, "ALERTA!", "No es Posible Modificar el Pedido ya se encuentra Sincronizado.");
+                        return;
+                    }
+
 
                     Log.w("Eliminar", "Esta Seleccionando el siguiente Item:"+item.getCodigo_interno()+" - "+item.getDescripcion());
 
@@ -963,10 +998,17 @@ public class MainActivity extends AppCompatActivity
     img_consul_cli.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View view) {
+
+            if(tv_pedido_sincronizado.getText().toString().equals("S")){
+                Utils.generarAlerta(MainActivity.this, "ALERTA!", "No es Posible Modificar el Pedido ya se encuentra Sincronizado.");
+                return;
+            }
+
             AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
             final View mView = getLayoutInflater().inflate(R.layout.consulta_cliente_dialog,null);
             //
             //
+
             String Identificacion;
             btnConsultaClienteOK = (Button) mView.findViewById(R.id.btnConsultaCliente);
             ListaMisClientes = (ListView) mView.findViewById(R.id.listClientesDialog);//ListaMisClientes
@@ -1110,6 +1152,11 @@ public class MainActivity extends AppCompatActivity
         dialog.show();
     }
     public void AlertDialogAddItems(){
+
+        if(tv_pedido_sincronizado.getText().toString().equals("S")){
+            Utils.generarAlerta(MainActivity.this, "ALERTA!", "No es Posible Modificar el Pedido ya se encuentra Sincronizado.");
+            return;
+        }
 
         AlertDialog.Builder mBuilder = new AlertDialog.Builder(MainActivity.this);
         final View mView = getLayoutInflater().inflate(R.layout.add_productos_dialog,null);
@@ -1575,6 +1622,17 @@ public class MainActivity extends AppCompatActivity
         SharedPreferencesManager.deleteValor(this,PREFERENCIA_INICIO,KEY_PASS);
         SharedPreferencesManager.deleteValor(this,PREFERENCIA_INICIO,KEY_PIN);
         Log.w("Acceso_usuario", "Registrando PASS ->"+SharedPreferencesManager.getValorEsperado(this,PREFERENCIA_INICIO,KEY_USER));
+        try{
+            Pedidos.deleteAll(Pedidos.class);
+            DetallePedidos.deleteAll(DetallePedidos.class);
+            Pedidos.executeQuery("DELETE FROM SQLITE_SEQUENCE WHERE NAME = 'PEDIDOS'");
+            DetallePedidos.executeQuery("DELETE FROM SQLITE_SEQUENCE WHERE NAME = 'DETALLE_PEDIDOS'");
+
+            Log.e("reset_accesos","Borrando información de la BD");
+        } catch (Exception e){
+            Log.e("reset_accesos","error al Borrar la tabla:");
+        }
+
         finish();
     }
 
@@ -1679,6 +1737,8 @@ public class MainActivity extends AppCompatActivity
           String fecha_creacion = timeStampFormat.format(myDate);
           np_identificacion.setText("0000000000000");
           np_cliente.setText("CONSUMIDOR FINAL");
+          tv_pedido_sincronizado.setText("N");
+          edt_ma_desc.setEnabled(true);
 
           pedidos = new Pedidos("0","0","0000000000000","CONSUMIDOR FINAL","0.00","0.00","0.00","0.00","A","N",fecha_creacion,SharedPreferencesManager.getValorEsperado(this,PREFERENCIA_INICIO,KEY_USER),"");
           long ID = pedidos.save();
@@ -1731,7 +1791,7 @@ public class MainActivity extends AppCompatActivity
             pedidos_arrayList = new ArrayList<>();
             pedidos = new Pedidos();
             //pedidos_List = Pedidos.listAll(Pedidos.class);
-            pedidos_List = Pedidos.find(Pedidos.class,"ESTADO = ? ","A");
+            pedidos_List = Pedidos.find(Pedidos.class,"ESTADO = ? OR ESTADO = ?","A","P");
 
             //for(int p=0;p<pedidos_List.size();p++){
             for(int p=pedidos_List.size()-1;p>=0;p--){
@@ -1894,7 +1954,13 @@ public void SumaTotales(){
             descuent = Double.parseDouble(edt_ma_desc.getText().toString());
         }
 
+        if(descuent>sumSubtotal){
+            Toast.makeText(MainActivity.this, "El Valor del Descuento debe ser menor al SubTotal", Toast.LENGTH_SHORT).show();
+            descuent = Double.parseDouble("0");
+            edt_ma_desc.setText("0");
+            //return;
 
+        }
 
 
         sumIVA = (sumSubtotal-descuent)*0.12;
@@ -2041,17 +2107,24 @@ public void SumaTotales(){
             Log.w("list_detalles_pedidos", "Cantidad de Registros en el detalle "+list_detalles_pedidos.size());
                 for (int i = 0; i < list_detalles_pedidos.size(); i++) {
 
-                Log.w("list_detalles_pedidos", "Detalles - ID " + list_detalles_pedidos.get(i).getId() + " Id_pedido_intero " + list_detalles_pedidos.get(i).getId_pedido() + " Cod_alter " +
-                        list_detalles_pedidos.get(i).getCod_alter() + " Cod_inter " +
-                        list_detalles_pedidos.get(i).getCod_inter() + " Descripcion " +
-                        list_detalles_pedidos.get(i).getDescripcion() + " Cantidad " +
-                        list_detalles_pedidos.get(i).getCantidad() + " Valor " +
-                        list_detalles_pedidos.get(i).getValor() + " Total " +
-                        list_detalles_pedidos.get(i).getTotal() + " Estado " +
-                        list_detalles_pedidos.get(i).getEstado());
+
                     if(list_detalles_pedidos.get(i).getEstado().toString().equals("A")){
                         //enviar a detalle
-                        RegistraDetallePedidosWS(PedidoExterno,
+
+                        Log.w("list_detalles_pedidos", "Detalles - ID " + list_detalles_pedidos.get(i).getId() + " Id_pedido_intero " + list_detalles_pedidos.get(i).getId_pedido() + " Cod_alter " +
+                                list_detalles_pedidos.get(i).getCod_alter() + " Cod_inter " +
+                                list_detalles_pedidos.get(i).getCod_inter() + " Descripcion " +
+                                list_detalles_pedidos.get(i).getDescripcion() + " Cantidad " +
+                                list_detalles_pedidos.get(i).getCantidad() + " Valor " +
+                                list_detalles_pedidos.get(i).getValor() + " Total " +
+                                list_detalles_pedidos.get(i).getTotal() + " Estado " +
+                                list_detalles_pedidos.get(i).getEstado());
+
+
+
+
+
+                        /*RegistraDetallePedidosWS(PedidoExterno,
                                 list_detalles_pedidos.get(i).getCod_inter(),
                                 list_detalles_pedidos.get(i).getCod_alter(),
                                 list_detalles_pedidos.get(i).getCantidad(),
@@ -2059,7 +2132,78 @@ public void SumaTotales(){
                                 fecha_creacion,
                                 fecha_creacion,
                                 list_detalles_pedidos.get(i).getEstado(),
-                                "0");
+                                "0");*/
+
+                        Log.w("registraPedidosDET", "Sincronizando:::" +PedidoExterno );
+                        SyncPedidosWS sync_pedidos_det = MaservenApplication.getApplication().getRestAdapter().create(SyncPedidosWS.class);
+                        try{
+                            callInsertDetPedidos = sync_pedidos_det.setDatosDetPedidosWS(PedidoExterno,list_detalles_pedidos.get(i).getCod_inter(),list_detalles_pedidos.get(i).getCod_alter(),list_detalles_pedidos.get(i).getCantidad(),list_detalles_pedidos.get(i).getValor(),fecha_creacion,fecha_creacion,list_detalles_pedidos.get(i).getEstado(),"0");
+                        } catch (IllegalArgumentException e1) {
+                            Log.w("registraPedidosCab", "Exception: "+e1.getMessage()+"-- msg"+e1.getStackTrace());
+                            e1.printStackTrace();
+                        } catch (IllegalStateException e1) {
+                            e1.printStackTrace();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        callInsertDetPedidos.enqueue(new Callback<SyncPedidosWS.DatosDetPedidos>() {
+                            @Override
+                            public void onResponse(Call<SyncPedidosWS.DatosDetPedidos> call, Response<SyncPedidosWS.DatosDetPedidos> response) {
+                                String err = "";
+                                try {
+                                    // err = response.errorBody().toString();
+                                    Log.w("registraPedidosCab", "Consultando respuesta" +err );
+                                    if (err.equalsIgnoreCase("")) {
+                                        if (response.body() != null) {
+                                            if (response.isSuccess()) {
+                                                SyncPedidosWS.DatosDetPedidos otp = response.body();
+
+                                                if (otp.getId_pedido().equals("-1")){
+                                                    Toast.makeText(MainActivity.this, "Problemas al sincronizar el Detalle de Pedidos", Toast.LENGTH_SHORT).show();
+
+                                                }else{
+                                                    Toast.makeText(MainActivity.this, "Detalle Pedido sincronizado Correctamente", Toast.LENGTH_SHORT).show();
+                                                }
+
+                                            } else {
+                                                Log.e("registraPedidosCab", "Error en el webservice, success false");
+
+                                            }
+                                        } else {
+                                            Log.e("registraPedidosCab", "Error de web service, no viene json");
+                                            //btn_sync.setEnabled(true);
+                                            Toast.makeText(MainActivity.this, "Problemas1 con el servicio,  comuniquese con soporte MASERVEN...", Toast.LENGTH_SHORT).show();
+
+                                        }
+                                    } else {
+                                        Log.e("registraPedidosCab", "Error en el webservice " + err);
+
+                                    }
+                                } catch (Exception e) {
+
+
+                                    Toast.makeText(MainActivity.this, "Problemas con el servicio,  comuniquese con soporte MASERVEN...", Toast.LENGTH_SHORT).show();
+                                    Log.w("registraPedidosCab", "Exception: "+e.getMessage()+"-- msg"+e.getStackTrace());
+
+
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<SyncPedidosWS.DatosDetPedidos> call, Throwable t) {
+                                Log.w("registraPedidosDET", "onFailure - "+t.getMessage());
+                                Toast.makeText(MainActivity.this, "Probelmas con la Conexión, intente en unos momentos", Toast.LENGTH_SHORT).show();
+
+                            }
+                        });
+
+
+
+
+
+
+                        /***********/
                     }
 
                  }
@@ -2084,7 +2228,7 @@ public void SumaTotales(){
             pedidos.getVal_descuento();
             pedidos.getVal_iva();
             pedidos.getVal_total();
-            Log.w("Consulta Pedidos: ", "getId: "+pedidos.getId()+" Cliente. "+pedidos.getNom_cliente() );
+            Log.w("Consulta Pedidos", " getId: "+pedidos.getId()+" Cliente. "+pedidos.getNom_cliente() );
             FrameNewPedido.setVisibility(View.VISIBLE);
             FramePedidosDiariosOk.setVisibility(View.GONE);
             lb_newPedido=true;
@@ -2096,10 +2240,18 @@ public void SumaTotales(){
             tv_ma_total.setText(pedidos.getVal_total().toString());
             tv_ma_iva.setText(pedidos.getVal_iva().toString());
             edt_ma_desc.setText(pedidos.getVal_descuento().toString());
+            tv_pedido_sincronizado.setText(pedidos.getSincronizado().toString());
+            if(tv_pedido_sincronizado.getText().toString().equals("S")){
+                edt_ma_desc.setEnabled(false);
+            }else{
+                edt_ma_desc.setEnabled(true);
+            }
+
+            Toast.makeText(MainActivity.this, "Pedido Sincronizado.."+pedidos.getSincronizado().toString(), Toast.LENGTH_SHORT).show();
 
             if(!pedidos.getId().toString().isEmpty()){
-                Log.w("Consulta Pedidos", "IdPedido "+pedidos.getId().toString());
-                list_detalles_pedidos = DetallePedidos.find(DetallePedidos.class,"IDPEDIDO = ? AND ESTADO = ? AND SINCRONIZADO = ?",pedidos.getId().toString(),"A","N");
+                Log.w("Consulta Pedidos", " IdPedido "+pedidos.getId().toString());
+                list_detalles_pedidos = DetallePedidos.find(DetallePedidos.class,"IDPEDIDO = ? AND ESTADO = ?",pedidos.getId().toString(),"A");
                 if(list_detalles_pedidos.size()>0){
                     model2.clear();
                     for (int i = 0; i < list_detalles_pedidos.size(); i++) {
@@ -2355,7 +2507,9 @@ public void refresh_list_items(String IdPedido){
 public void enviarPedidoID(int Id){
 
     try{
-
+        IDPedidoExternoAPP="";
+        IDPedidoInternoAPP="";
+        NombreArchivoAPP="";
 
         pedidos = new Pedidos();
         pedidos = Pedidos.findById(Pedidos.class,Id);
@@ -2417,37 +2571,55 @@ public void registraPedidosCab(final String num_pedido,
             try{
                 Log.w("registraPedidosCab", "Consultando respuesta" +err );
                 if (err.equalsIgnoreCase("")) {
-                    if (response.body() != null) {
-                        if (response.isSuccess()) {
-                            SyncPedidosWS.DatosPedidos otp = response.body();
+                    if (response.body() != null) if (response.isSuccess()) {
+                        SyncPedidosWS.DatosPedidos otp = response.body();
 
-                            if (otp.getId_pedido().equals("-1")){
-                                Toast.makeText(MainActivity.this, "Problemas al sincronizar el Pedido", Toast.LENGTH_SHORT).show();
-
-                            }else{
-                                pedidos = new Pedidos();
-                                pedidos = Pedidos.findById(Pedidos.class,Integer.parseInt(num_pedido.toString()));
-                                pedidos.setNum_pedido(otp.getId_pedido());
-                                pedidos.setSincronizado("S");
-                                pedidos.save();
-                                Log.e("registraPedidosCab", "Comenzando a Sincronizar el detalle del pedido");
-                                Log.e("registraPedidosCab", "Pedido Interno:"+num_pedido.toString()+" Pedido externo: "+otp.getId_pedido().toString());
-                                ConsultadetallesPedidios(num_pedido.toString(),otp.getId_pedido().toString());
-                                Log.e("registraPedidosCab", "Enviando el Correo - IDPedido: "+otp.getId_pedido().toString()+" Nombre Archivo: "+otp.getNombre_archivo().toString()+"email: stalyn.granda@hotmail.com");
-                                GenerarDocumento(otp.getId_pedido().toString(),otp.getNombre_archivo().toString(),"stalyn.granda@hotmail.com");
-                                progres_sync.setVisibility(View.GONE);
-                                btn_sync.setVisibility(View.VISIBLE);
-                                consulta_mis_pedidos();
-                                Toast.makeText(MainActivity.this, "Pedido sincronizado Correctamente", Toast.LENGTH_SHORT).show();
-                            }
+                        if (otp.getId_pedido().equals("-1")) {
+                            Toast.makeText(MainActivity.this, "Problemas al sincronizar el Pedido", Toast.LENGTH_SHORT).show();
 
                         } else {
-                            Log.e("registraPedidosCab", "Error en el webservice, success false");
-                            btn_sync.setEnabled(true);
-                            //progres_sync.setVisibility(View.INVISIBLE);
+                            pedidos = new Pedidos();
+                            pedidos = Pedidos.findById(Pedidos.class, Integer.parseInt(num_pedido.toString()));
+                            pedidos.setNum_pedido(otp.getId_pedido());
+                            pedidos.setSincronizado("S");
+                            pedidos.save();
+                            Log.e("registraPedidosCab", "Comenzando a Sincronizar el detalle del pedido");
+                            Log.e("registraPedidosCab", "Pedido Interno:" + num_pedido.toString() + " Pedido externo: " + otp.getId_pedido().toString());
+                            IDPedidoInternoAPP = num_pedido.toString();
+                            IDPedidoExternoAPP = otp.getId_pedido().toString();
+                            NombreArchivoAPP = otp.getNombre_archivo().toString();
+                            //ConsultadetallesPedidios(IDPedidoInternoAPP,IDPedidoExternoAPP);
+                            Log.e("registraPedidosCab", "Enviando el Correo - IDPedido: " + otp.getId_pedido().toString() + " Nombre Archivo: " + otp.getNombre_archivo().toString() + "email: stalyn.granda@hotmail.com");
+                            // GenerarDocumento(IDPedidoExternoAPP,NombreArchivoAPP,"stalyn.granda@hotmail.com");
+                            //progres_sync.setVisibility(View.GONE);
+                            //btn_sync.setVisibility(View.VISIBLE);
+
+                            progres_sync.setVisibility(View.VISIBLE);
+                            btn_sync.setVisibility(View.GONE);
+                            Toast.makeText(MainActivity.this, "Pedido N°: " + IDPedidoInternoAPP + " Enviado detalle...IDPedidoInternoAPP: " + IDPedidoInternoAPP + " IDPedidoExternoAPP: " + IDPedidoExternoAPP, Toast.LENGTH_SHORT).show();
+                            ConsultadetallesPedidios(IDPedidoInternoAPP, IDPedidoExternoAPP);
+                            // Log.e("registraPedidosCab", "Enviando el Correo - IDPedido: "+otp.getId_pedido().toString()+" Nombre Archivo: "+otp.getNombre_archivo().toString()+"email: stalyn.granda@hotmail.com");
+                            progres_sync.setVisibility(View.VISIBLE);
+                            btn_sync.setVisibility(View.GONE);
+                            Toast.makeText(MainActivity.this, "Inicando Sleep 1000 ", Toast.LENGTH_SHORT).show();
+
+                            Thread.sleep(2000);
+                            Toast.makeText(MainActivity.this, "Generando Pedido N°: " + IDPedidoInternoAPP + " Enviado detalle...IDPedidoInternoAPP: " + IDPedidoInternoAPP + " IDPedidoExternoAPP: " + IDPedidoExternoAPP, Toast.LENGTH_SHORT).show();
+                            GenerarDocumento(IDPedidoExternoAPP, NombreArchivoAPP, TextNombreUser.getText().toString());
+                            progres_sync.setVisibility(View.GONE);
+                            btn_sync.setVisibility(View.VISIBLE);
+
+
+                            consulta_mis_pedidos();
+                            Toast.makeText(MainActivity.this, "Pedido sincronizado Correctamente", Toast.LENGTH_SHORT).show();
                         }
 
-                    }else {
+                    } else {
+                        Log.e("registraPedidosCab", "Error en el webservice, success false");
+                        btn_sync.setEnabled(true);
+                        //progres_sync.setVisibility(View.INVISIBLE);
+                    }
+                    else {
                         Log.e("registraPedidosCab", "Error de web service, no viene json");
                         //btn_sync.setEnabled(true);
                         Toast.makeText(MainActivity.this, "Problemas1 con el servicio,  comuniquese con soporte MASERVEN...", Toast.LENGTH_SHORT).show();
@@ -2626,5 +2798,74 @@ public void registraPedidosCab(final String num_pedido,
           }
       });
   }
+
+  public void SyncAllMisPedidos(String email){
+
+      Log.w("SyncAllMisPedidos", "Sincronizando:::" +email );
+      SyncTodosPedidosWS getMisPedidosWS = MaservenApplication.getApplication().getRestAdapter().create(SyncTodosPedidosWS.class);
+      try{
+          callMisPedidosWS = getMisPedidosWS.getAllPedidosWS(email);
+      } catch (IllegalArgumentException e1) {
+          Log.w("SyncAllMisPedidos", "Exception: "+e1.getMessage()+"-- msg"+e1.getStackTrace());
+          e1.printStackTrace();
+      } catch (IllegalStateException e1) {
+          e1.printStackTrace();
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
+
+      callMisPedidosWS.enqueue(new Callback<SyncTodosPedidosWS.MisPedidos>() {
+          @Override
+          public void onResponse(Call<SyncTodosPedidosWS.MisPedidos> call, Response<SyncTodosPedidosWS.MisPedidos> response) {
+              String err = "";
+              try {
+                  // err = response.errorBody().toString();
+                  Log.w("SyncAllMisPedidos", "Consultando respuesta" +err );
+                  if (err.equalsIgnoreCase("")) {
+                      if (response.body() != null) {
+                          if (response.isSuccess()) {
+                              SyncTodosPedidosWS.MisPedidos otp = response.body();
+
+                              if (otp.getPedidos().size()>0){
+                                  Toast.makeText(MainActivity.this, "Obteniendo Pedidos... Espere Por favor", Toast.LENGTH_SHORT).show();
+
+                              }else{
+                                  Toast.makeText(MainActivity.this, "No hay pedidos que sincronizar...", Toast.LENGTH_SHORT).show();
+                              }
+
+                          } else {
+                              Log.e("SyncAllMisPedidos", "Error en el webservice, success false");
+
+                          }
+                      } else {
+                          Log.e("SyncAllMisPedidos", "Error de web service, no viene json");
+                          //btn_sync.setEnabled(true);
+                          Toast.makeText(MainActivity.this, "Problemas1 con el servicio,  comuniquese con soporte MASERVEN...", Toast.LENGTH_SHORT).show();
+
+                      }
+                  } else {
+                      Log.e("SyncAllMisPedidos", "Error en el webservice " + err);
+
+                  }
+              } catch (Exception e) {
+
+
+                  Toast.makeText(MainActivity.this, "Problemas con el servicio,  comuniquese con soporte MASERVEN...", Toast.LENGTH_SHORT).show();
+                  Log.w("SyncAllMisPedidos", "Exception: "+e.getMessage()+"-- msg"+e.getStackTrace());
+
+
+              }
+          }
+
+          @Override
+          public void onFailure(Call<SyncTodosPedidosWS.MisPedidos> call, Throwable t) {
+              Log.w("SyncAllMisPedidos", "onFailure - "+t.getMessage());
+              Toast.makeText(MainActivity.this, "Documento Generado, Revisar su Correo Electrónico.", Toast.LENGTH_SHORT).show();
+
+          }
+      });
+  }
+
+
 
 }
